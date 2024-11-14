@@ -4,6 +4,7 @@ import { Types } from "mongoose";
 import { getContext } from "../context";
 import { requestHandler } from "../controllers/request-handler";
 import { validateRequest } from "../controllers/validate";
+import { isObjectId } from "../utils/object-id-regex";
 import { IFollowing } from "./followermodel";
 import { FollowingRepository } from "./followerrepository";
 import { FollowingDto, NewFollowingDto } from "./followertypes";
@@ -11,19 +12,30 @@ import { FollowingDto, NewFollowingDto } from "./followertypes";
 const jsonParser = bodyParser.json();
 const followerRouter = Router();
 
+const checkQueryParamObjectId = (param: any): boolean => {
+  return !(typeof(param) !== "string" || !isObjectId(param))
+}
+export const createFollowerRoutes = ():Router => {
 followerRouter.get(
   "/",
   requestHandler(async (req: Request, resp: Response) => {
     //Get user ID from context in the future
     const ownerQuery = req.query.owningUserId;
     const followerQuery = req.query.followerId;
-    var following:IFollowing[]  = [];
 
+    //Validate any set query arguments
+    if(ownerQuery && !checkQueryParamObjectId(ownerQuery) ||
+     followerQuery && !checkQueryParamObjectId(followerQuery)) {
+      resp.status(400).send({errorMessage: "Parameters must be valid objectIds"})
+      return;
+    }
+
+    var following:IFollowing[]  = [];
     if(ownerQuery && typeof(ownerQuery) ===  "string") {
-            following = await FollowingRepository.findByOwnerId(new Types.ObjectId(req.query.owningUserId as string))
+            following = await FollowingRepository.findByOwnerId(new Types.ObjectId(ownerQuery))
     }
     if(followerQuery && typeof(followerQuery) ===  "string") {
-            following = await FollowingRepository.findByOwnerId(new Types.ObjectId(req.query.owningUserId as string))
+            following = await FollowingRepository.findByOwnerId(new Types.ObjectId(followerQuery))
     }
 
     const followingDtos = following.map((following) => {
@@ -58,3 +70,5 @@ followerRouter.post("/", jsonParser, async (req: Request, resp: Response) => {
   };
   return resultDto;
 });
+return followerRouter;
+}
