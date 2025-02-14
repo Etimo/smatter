@@ -9,7 +9,7 @@ on:
   workflow_dispatch: # allows manual triggering
 
 jobs:
-  Shuttle branch:
+  Shuttle-branch:
     runs-on: ubuntu-latest
     steps:
       - name: Extract branch name
