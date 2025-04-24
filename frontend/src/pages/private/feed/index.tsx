@@ -114,7 +114,7 @@ const MakeSmat = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Textarea placeholder="Hello world!" {...field} />
+                      <Textarea placeholder="What smatters to you?" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
