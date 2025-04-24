@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -23,12 +22,10 @@ func (app *application) getUserHandler(responseWriter http.ResponseWriter, reque
 		Password: "",
 	}
 
-	js, err := json.Marshal(user)
+	err := app.writeJSON(responseWriter, http.StatusOK, user, nil)
 
 	if err != nil {
 		return
 	}
 
-	responseWriter.Header().Set("Content-Type", "application/json")
-	responseWriter.Write(js)
 }

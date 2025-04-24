@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -13,13 +12,10 @@ func (app *application) healthcheckHandler(responseWriter http.ResponseWriter, r
 		"version":     version,
 	}
 
-	js, err := json.Marshal(data)
+	err := app.writeJSON(responseWriter, http.StatusOK, data, nil)
 
 	if err != nil {
 		return
 	}
 
-	responseWriter.Header().Set("Content-Type", "application/json")
-
-	responseWriter.Write(js)
 }
