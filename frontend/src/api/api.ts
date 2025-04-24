@@ -36,8 +36,8 @@ export type Endpoint<T> = (param: string) => {
   request: (body?: any) => Promise<T>;
 };
 
-type Post = { id: string; content: string };
-type NewPost = Omit<Post, "id">;
+type Post = { id: string; content: string, createdAt: string };
+type NewPost = Omit<Post, "id" | "createdAt">;
 
 export const Endpoints = {
   posts: {
