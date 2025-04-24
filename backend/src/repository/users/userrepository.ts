@@ -59,6 +59,7 @@ export const UserRepository = {
   create,
   getById,
   getByIds,
+  search,
   getByEmail,
   updateById,
 };
