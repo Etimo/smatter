@@ -10,6 +10,19 @@ const create = async (user: INewUser) => {
   return mongoDoc.save();
 };
 
+const search = async (query: string) => {
+  const searchRegex = new RegExp(query, 'i');
+
+  return User.find({
+    $or: [
+      { username: searchRegex },
+      { email: searchRegex }
+    ]
+  })
+    .select('username email')
+    .exec();
+};
+
 const getAll = async () => {
   const users = await User.find();
   return users.map(u => new User(u) as IUser);
@@ -27,24 +40,13 @@ const updateById = async (id: string, user: IUpdateUser) => {
   return User.findByIdAndUpdate(id, user, { new: true });
 };
 
-const search = async (query: string) => {
-  const searchRegex = new RegExp(query, 'i');
-
-  return User.find({
-    $or: [
-      { username: searchRegex },
-      { email: searchRegex }
-    ]
-  })
-  .select('username email')
-  .exec();
-};
 
 export const UserRepository = {
   getAll,
   mapToNew,
   create,
+  search,
   getById,
-  getByEmail, search,
+  getByEmail,
   updateById,
 };
