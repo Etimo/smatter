@@ -3,6 +3,7 @@ import { getContext } from "../../context";
 import { ApiError } from "../../errors";
 import { Post } from "../../model/post";
 import { PostRepository } from "../../repository/posts/postrepository";
+import { UserRepository } from "../../repository/users/userrepository";
 import { requestHandler } from "../request-handler";
 import { validateId, validateRequest } from "../validate";
 import { NewPostDtoSchema, PostDto } from "./types";
@@ -11,19 +12,19 @@ const users: {
   username: string;
   displayName: string;
 }[] = [
-  {
-    username: "philipForsberg",
-    displayName: "Prebenlover123",
-  },
-  {
-    username: "chunkyCat42",
-    displayName: "Round and proud",
-  },
-  {
-    username: "ittybittykittycommittee",
-    displayName: "Mr Meow",
-  },
-];
+    {
+      username: "philipForsberg",
+      displayName: "Prebenlover123",
+    },
+    {
+      username: "chunkyCat42",
+      displayName: "Round and proud",
+    },
+    {
+      username: "ittybittykittycommittee",
+      displayName: "Mr Meow",
+    },
+  ];
 
 export const createPostRoutes = (): Router => {
   const postRouter = Router();
@@ -32,18 +33,42 @@ export const createPostRoutes = (): Router => {
     "/",
     requestHandler(async (req: Request, res: Response) => {
       const posts = await PostRepository.getAll();
+
+      const uniqueAuthorIds = [...new Set(
+        posts
+          .filter(post => post.authorId)
+          .map(post => post.authorId!.toString())
+      )];
+
+      const userMap = new Map()
+
+      if (uniqueAuthorIds.length > 0) {
+        const users = await UserRepository.getByIds(uniqueAuthorIds);
+
+        users.forEach(user => {
+          userMap.set(user._id.toString(), {
+            username: user.username,
+            displayName: user.displayName || user.username
+          });
+        });
+      }
+
       const postDtos: PostDto[] = posts
-        .sort((a, b) => {
-          return b.createdAt.getTime() - a.createdAt.getTime();
-        })
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
         .map((post) => {
+          // get a random default user:
+          const defaultUser = users[Math.floor(Math.random() * users.length)]
+
+          const user = post.authorId
+            ? userMap.get(post.authorId.toString())
+            : defaultUser;
+
           return {
             id: post._id.toString(),
             content: post.content,
             authorId: post.authorId?.toString(),
             createdAt: post.createdAt,
-            // get a random user:
-            user: users[Math.floor(Math.random() * users.length)],
+            user
           };
         });
 

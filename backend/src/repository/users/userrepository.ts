@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { NewUserDto } from "../../controllers/users/types";
 import { INewUser, IUpdateUser, IUser, User } from "../../model/user";
 
@@ -19,6 +20,18 @@ const getById = async (id: string) => {
   return User.findById(id);
 };
 
+const getByIds = async (ids: string[]) => {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const objectIds = ids.map(id => new mongoose.Types.ObjectId(id));
+
+  return User.find({
+    _id: { $in: objectIds }
+  });
+};
+
 const getByEmail = async (email: string) => {
   return User.findOne({ email });
 };
@@ -36,8 +49,8 @@ const search = async (query: string) => {
       { email: searchRegex }
     ]
   })
-  .select('username email')
-  .exec();
+    .select('username email')
+    .exec();
 };
 
 export const UserRepository = {
@@ -45,6 +58,7 @@ export const UserRepository = {
   mapToNew,
   create,
   getById,
-  getByEmail, search,
+  getByIds,
+  getByEmail,
   updateById,
 };
