@@ -13,9 +13,11 @@ export const requestHandler = (
     );
     if (!options?.isPublic) await authenticate(req, res);
 
-    fn(req, res, next)
-      .then(next)
-      .catch((e) => next(e));
+    try {
+      await fn(req, res, next);
+    } catch (e) {
+      next(e); // Only call next() for errors
+    }
   };
 };
 
