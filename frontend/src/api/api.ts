@@ -207,9 +207,10 @@ export const Endpoints = {
     },
   },
   feed: {
-    get: () => {
+    get: (filter = "all") => {
+      const queryParams = filter === "following" ? '?following=true' : '';
       return {
-        key: ["GET-feed"],
+        key: ["GET-feed", filter],
         request: () =>
           fetchFn<
             (Post & {
@@ -218,7 +219,7 @@ export const Endpoints = {
                 displayName: string;
               };
             })[]
-          >(`${baseUrl}/feed`),
+          >(`${baseUrl}/feed${queryParams}`),
       };
     },
   },

@@ -1,6 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { Endpoints, useSmatterQuery } from "../../../api/api";
@@ -26,10 +27,15 @@ import {
 } from "../../../components/ui/icons";
 import { Textarea } from "../../../components/ui/textarea";
 import { toast } from "../../../components/ui/use-toast";
+import { cn } from "../../../utils/class-names";
 
 const FeedPage = () => {
-  const query = useSmatterQuery(Endpoints.feed.get());
-  const [parent] = useAutoAnimate();
+  const [activeTab, setActiveTab] = useState("all");
+  const query = useSmatterQuery(Endpoints.feed.get(activeTab));
+
+  const [animationParent] = useAutoAnimate();
+
+  const listKey = `feed-list-${activeTab}`;
 
   if (query.error) {
     return <p>Error: {query.error.message}</p>;
@@ -40,7 +46,33 @@ const FeedPage = () => {
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
           <MakeSmat />
-          <ol className="space-y-4" ref={query.data ? parent : null}>
+          <div className="flex border-b border-gray-200 dark:border-gray-800">
+            <Button
+              variant="ghost"
+              className={cn(
+                "flex-1 rounded-none",
+                activeTab === "all"
+                  ? "border-b-2 border-blue-500"
+                  : "text-gray-500 dark:text-gray-400"
+              )}
+              onClick={() => setActiveTab("all")}
+            >
+              All
+            </Button>
+            <Button
+              variant="ghost"
+              className={cn(
+                "flex-1 rounded-none",
+                activeTab === "following"
+                  ? "border-b-2 border-blue-500"
+                  : "text-gray-500 dark:text-gray-400"
+              )}
+              onClick={() => setActiveTab("following")}
+            >
+              Following
+            </Button>
+          </div>
+          <ol key={listKey} className="space-y-4 pt-4" ref={animationParent}>
             {query.isPending ? (
               <>
                 <SkeletonSmat />
@@ -84,7 +116,7 @@ const MakeSmat = () => {
     onSuccess: () => {
       form.reset();
       void queryClient.invalidateQueries({
-        queryKey: Endpoints.posts.get().key,
+        queryKey: Endpoints.feed.get().key,
       });
       toast({
         description: "You just shared your thoughts with the world 😻",
