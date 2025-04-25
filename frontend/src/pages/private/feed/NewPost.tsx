@@ -12,9 +12,11 @@ const formSchema = z.object({
 export const PostForm = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: Endpoints.posts.create.request,
+    mutationFn: Endpoints.posts.create().request,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: Endpoints.posts.get.key });
+      void queryClient.invalidateQueries({
+        queryKey: Endpoints.posts.get().key,
+      });
       toast({
         description: "Post created",
         title: "Success",

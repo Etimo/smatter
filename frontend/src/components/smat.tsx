@@ -7,6 +7,7 @@ import {
   RepeatIcon,
   UploadIcon,
 } from "../components/ui/icons";
+import { formatElapsedTime } from "../utils/time-formatter";
 
 type SmatProps = {
   post: {
@@ -15,10 +16,12 @@ type SmatProps = {
       username: string;
       displayName: string;
     };
+    createdAt: string;
   };
 };
 
 export const Smat = (props: SmatProps) => {
+  const elapsedTime = formatElapsedTime(props.post.createdAt);
   return (
     <Card className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
       <div className="flex items-start gap-4">
@@ -34,7 +37,9 @@ export const Smat = (props: SmatProps) => {
             <span className="text-gray-500 dark:text-gray-400">
               @{props.post.user.username}
             </span>
-            <span className="text-gray-500 dark:text-gray-400">· 3h</span>
+            <span className="text-gray-500 dark:text-gray-400">
+              · {elapsedTime}
+            </span>
           </div>
           <p className="mt-2">{props.post.content}</p>
           <div className="flex items-center gap-4 mt-2">

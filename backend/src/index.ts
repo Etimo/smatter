@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import httpContext from "express-http-context";
 import { createAuthRoutes } from "./controllers/auth/controller";
+import { createFeedRoutes } from "./controllers/feed/controller";
 import { createPostRoutes } from "./controllers/posts/controller";
 import { createUserRoutes } from "./controllers/users/controller";
 import { connectDb } from "./domain/configuration/mongo";
@@ -37,6 +38,7 @@ app.use("/users", createUserRoutes());
 app.use("/posts", createPostRoutes());
 app.use("/auth", createAuthRoutes());
 app.use("/followers", createFollowerRoutes());
+app.use("/feed", createFeedRoutes());
 
 app.listen(port, () => {
   console.log(`Api listening on port ${port}`);

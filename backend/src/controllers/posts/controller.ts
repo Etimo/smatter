@@ -4,26 +4,9 @@ import { ApiError } from "../../errors";
 import { Post } from "../../model/post";
 import { PostRepository } from "../../repository/posts/postrepository";
 import { requestHandler } from "../request-handler";
+import { users } from "../users/constants";
 import { validateId, validateRequest } from "../validate";
 import { NewPostDtoSchema, PostDto } from "./types";
-
-const users: {
-  username: string;
-  displayName: string;
-}[] = [
-  {
-    username: "philipForsberg",
-    displayName: "Prebenlover123",
-  },
-  {
-    username: "chunkyCat42",
-    displayName: "Round and proud",
-  },
-  {
-    username: "ittybittykittycommittee",
-    displayName: "Mr Meow",
-  },
-];
 
 export const createPostRoutes = (): Router => {
   const postRouter = Router();
