@@ -28,7 +28,7 @@ import { Textarea } from "../../../components/ui/textarea";
 import { toast } from "../../../components/ui/use-toast";
 
 const FeedPage = () => {
-  const query = useSmatterQuery(Endpoints.posts.get());
+  const query = useSmatterQuery(Endpoints.feed.get());
   const [parent] = useAutoAnimate();
 
   if (query.error) {
@@ -114,7 +114,10 @@ const MakeSmat = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Textarea placeholder="What smatters to you?" {...field} />
+                      <Textarea
+                        placeholder="What smatters to you?"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

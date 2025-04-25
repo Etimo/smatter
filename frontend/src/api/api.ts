@@ -206,6 +206,22 @@ export const Endpoints = {
       };
     },
   },
+  feed: {
+    get: () => {
+      return {
+        key: ["GET-feed"],
+        request: () =>
+          fetchFn<
+            (Post & {
+              user: {
+                username: string;
+                displayName: string;
+              };
+            })[]
+          >(`${baseUrl}/feed`),
+      };
+    },
+  },
 } as const satisfies Record<string, Record<string, Endpoint<any>>>;
 
 type ReactQueryOptions<T> = Parameters<typeof useQuery<T>>[0];
