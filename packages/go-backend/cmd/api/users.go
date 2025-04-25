@@ -16,6 +16,7 @@ func (app *application) getUserHandler(responseWriter http.ResponseWriter, reque
 
 	id := params.ByName("id")
 
+	// TODO, put this in a repository
 	objID, objectIdParseErr := bson.ObjectIDFromHex(id)
 	if objectIdParseErr != nil {
 		fmt.Println("Error parsing ObjectID:", objectIdParseErr)
