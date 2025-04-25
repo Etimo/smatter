@@ -1,32 +1,30 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 const version = "1.0.0"
 
-// Define a config struct to hold all the configuration settings for our application.
-// For now, the only configuration settings will be the network port that we want the
-// server to listen on, and the name of the current operating environment for the
-// application (development, staging, production, etc.). We will read in these
-// configuration settings from command-line flags when the application starts.
 type config struct {
 	port int
 	env  string
 }
 
-// Define an application struct to hold the dependencies for our HTTP handlers, helpers,
-// and middleware. At the moment this only contains a copy of the config struct and a
-// logger, but it will grow to include a lot more as our build progresses.
 type application struct {
 	config config
 	logger *slog.Logger
+	db     *mongo.Client
 }
 
 func main() {
@@ -36,15 +34,24 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	flag.Parse()
 
-	// Initialize a new structured logger which writes log entries to the standard out
-	// stream.
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	// Declare an instance of the application struct, containing the config struct and
-	// the logger.
+	client, connectErr := connectToDB()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	defer func() {
+		fmt.Println("Disconnecting from MongoDB...")
+		if connectErr = client.Disconnect(ctx); connectErr != nil {
+			panic(connectErr)
+		}
+	}()
+
 	app := &application{
 		config: cfg,
 		logger: logger,
+		db:     client,
 	}
 
 	srv := &http.Server{
@@ -55,9 +62,23 @@ func main() {
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
-	// Start the HTTP server.
 	logger.Info("starting server", "addr", srv.Addr, "env", cfg.env)
 	err := srv.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
+}
+
+func connectToDB() (*mongo.Client, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	fmt.Println("Connecting to MongoDB...")
+
+	uri := "mongodb://fake:fake@127.0.0.1:27017"
+	client, err := mongo.Connect(options.Client().ApplyURI(uri))
+
+	_ = client.Ping(ctx, readpref.Primary())
+	fmt.Println("Connected to MongoDB!")
+
+	return client, err
 }
