@@ -8,7 +8,7 @@ type Error = {
 export const validateRequest = <T>(
   body: any,
   schema: ZodSchema<T>
-): { success: boolean } & (
+):  (
   | { success: false; errors: Error[] }
   | { success: true; result: T }
 ) => {

@@ -1,34 +1,30 @@
 # Smatter 🚀
 
+// git push smatter-push
+
 ## What is Smatter?
 
-Smatter is a Twitter-like social media page. We use it as a code base for applicants to complete tasks as part of the interview process.
+Smatter is a Twitter-like social media page.
 
 ## Tech Stack
 
-Theres a frontend package and a backend package. The frontend is built with React with Vite, and the backend is a web API built with Node.js and Express. The backend uses a MongoDB database.
+--
 
 ## Development Setup
 
 1. **Install Dependencies**\
-   Run the following command in the project root, and in each package
 
-   ```bash
-   npm install
-   ```
+  --
 
 2. **Start the Database**\
-   Run the following command in the backend package to start your database in a Docker container:
+   Run the following command to start your database in a Docker container:
 
    ```bash
-   npm run start-db
+   // TODO
    ```
 
 3. **Start the App**\
-   Run the following command in the project root to start both the backend and frontend:
 
    ```bash
-   npm run dev
+   // TODO
    ```
-
-   The frontend is served on port 5173, and the API can be accessed on port 3001.

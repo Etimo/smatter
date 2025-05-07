@@ -29,7 +29,7 @@ export const createCommentRoutes = (): Router => {
     requestHandler(async (req: Request, res: Response) => {
       const validationResult = validateRequest(req.body, NewCommentDto);
 
-      if (!validationResult.success) {
+      if (validationResult.success === false) {
         throw new Error(JSON.stringify(validationResult.errors));
       }
 
