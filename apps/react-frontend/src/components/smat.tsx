@@ -1,13 +1,13 @@
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
-import { Button } from "../components/ui/button";
-import { Card } from "../components/ui/card";
-import {
-  HeartIcon,
-  MessageCircleIcon,
-  RepeatIcon,
-  UploadIcon,
-} from "../components/ui/icons";
 import { formatElapsedTime } from "../utils/time-formatter";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import {
+    HeartIcon,
+    MessageCircleIcon,
+    RepeatIcon,
+    UploadIcon,
+} from "./ui/icons";
 
 type SmatProps = {
   post: {
