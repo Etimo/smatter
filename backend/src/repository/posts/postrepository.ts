@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { INewPost, Post } from "../../model/post";
 
 const save = async (post: INewPost) => {
@@ -9,6 +10,16 @@ const getAll = async () => {
   return posts;
 };
 
+const getByAuthorIds = async (authorIds: Types.ObjectId[]) => {
+  if (!authorIds.length) return [];
+
+  const posts = await Post.find({
+    authorId: { $in: authorIds }
+  });
+
+  return posts;
+};
+
 const deletePost = async (id: string) => {
   return Post.findByIdAndDelete(id);
 };
@@ -17,4 +28,4 @@ const findById = async (id: string) => {
   return Post.findById(id);
 };
 
-export const PostRepository = { getAll, save, deletePost, findById };
+export const PostRepository = { getAll, getByAuthorIds, save, deletePost, findById };
