@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+// ErrorResponse represents a standard error response
+type ErrorResponse struct {
+	Message string `json:"message"`
+	Details string `json:"details,omitempty"`
+}
+
 func (app *application) logError(request *http.Request, err error) {
 	var (
 		method = request.Method
@@ -12,7 +18,6 @@ func (app *application) logError(request *http.Request, err error) {
 	)
 
 	app.logger.Error(err.Error(), "method", method, "uri", uri)
-
 }
 
 func (app *application) errorResponse(responseWriter http.ResponseWriter, request *http.Request, status int, message any) {
@@ -25,16 +30,50 @@ func (app *application) errorResponse(responseWriter http.ResponseWriter, reques
 
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
-	message := "the server encountered a problem and could not process your request"
-	app.errorResponse(w, r, http.StatusInternalServerError, message)
+	
+	response := ErrorResponse{
+		Message: "the server encountered a problem and could not process your request",
+	}
+	
+	app.errorResponse(w, r, http.StatusInternalServerError, response)
 }
 
 func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request) {
-	message := "the requested resource could not be found"
-	app.errorResponse(w, r, http.StatusNotFound, message)
+	response := ErrorResponse{
+		Message: "the requested resource could not be found",
+	}
+	
+	app.errorResponse(w, r, http.StatusNotFound, response)
 }
 
 func (app *application) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
-	message := fmt.Sprintf("the %s method is not supported for this resource", r.Method)
-	app.errorResponse(w, r, http.StatusMethodNotAllowed, message)
+	response := ErrorResponse{
+		Message: fmt.Sprintf("the %s method is not supported for this resource", r.Method),
+	}
+	
+	app.errorResponse(w, r, http.StatusMethodNotAllowed, response)
+}
+
+func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+	response := ErrorResponse{
+		Message: err.Error(),
+	}
+	
+	app.errorResponse(w, r, http.StatusBadRequest, response)
+}
+
+func (app *application) unauthorizedResponse(w http.ResponseWriter, r *http.Request) {
+	response := ErrorResponse{
+		Message: "you must be authenticated to access this resource",
+	}
+	
+	app.errorResponse(w, r, http.StatusUnauthorized, response)
+}
+
+func (app *application) forbiddenResponse(w http.ResponseWriter, r *http.Request) {
+	response := ErrorResponse{
+		Message: "you don't have permission to access this resource",
+	}
+	
+	app.errorResponse(w, r, http.StatusForbidden, response)
 }

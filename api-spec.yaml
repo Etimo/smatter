@@ -1,0 +1,750 @@
+openapi: 3.0.3
+info:
+  title: Smatter API
+  description: A Twitter-like social media platform API
+  version: 1.0.0
+  contact:
+    name: Smatter API Support
+    
+servers:
+  - url: http://localhost:3001
+    description: Development server (Node.js)
+  - url: http://localhost:8080
+    description: Development server (Go)
+
+paths:
+  # Authentication endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user with email and password
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  minLength: 6
+                  example: password123
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: session=abc123; HttpOnly; Secure; SameSite=Strict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "507f1f77bcf86cd799439011"
+                  username:
+                    type: string
+                    example: johndoe
+                  email:
+                    type: string
+                    format: email
+                    example: user@example.com
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: User registration
+      description: Register a new user account
+      operationId: signup
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - username
+                - displayName
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: newuser@example.com
+                password:
+                  type: string
+                  minLength: 6
+                  example: password123
+                username:
+                  type: string
+                  maxLength: 20
+                  example: newuser
+                displayName:
+                  type: string
+                  maxLength: 20
+                  example: New User
+      responses:
+        '200':
+          description: Registration successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: session=abc123; HttpOnly; Secure; SameSite=Strict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "507f1f77bcf86cd799439011"
+                  username:
+                    type: string
+                    example: newuser
+                  email:
+                    type: string
+                    format: email
+                    example: newuser@example.com
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/logout:
+    get:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Logout current user and clear session
+      operationId: logout
+      security: []
+      responses:
+        '200':
+          description: Logout successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: session=; Max-Age=0
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user
+      description: Get information about the currently authenticated user
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "507f1f77bcf86cd799439011"
+                  username:
+                    type: string
+                    example: johndoe
+                  email:
+                    type: string
+                    format: email
+                    example: user@example.com
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # User endpoints
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get all users
+      description: Retrieve a list of all users
+      operationId: getUsers
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/search:
+    get:
+      tags:
+        - Users
+      summary: Search users
+      description: Search for users by username or display name
+      operationId: searchUsers
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Search query string
+          schema:
+            type: string
+            minLength: 1
+            example: john
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      description: Retrieve detailed information about a specific user
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+            example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Users
+      summary: Update user
+      description: Update user profile information (only own profile)
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+            example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUser'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Post endpoints
+  /posts:
+    get:
+      tags:
+        - Posts
+      summary: Get all posts
+      description: Retrieve all posts sorted by creation date (newest first)
+      operationId: getPosts
+      responses:
+        '200':
+          description: List of posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Posts
+      summary: Create new post
+      description: Create a new post
+      operationId: createPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPost'
+      responses:
+        '200':
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    delete:
+      tags:
+        - Posts
+      summary: Delete post
+      description: Delete a post (only post author can delete)
+      operationId: deletePost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  example: "507f1f77bcf86cd799439011"
+      responses:
+        '204':
+          description: Post deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Feed endpoint
+  /feed:
+    get:
+      tags:
+        - Feed
+      summary: Get user feed
+      description: Retrieve posts for the user's feed with author information
+      operationId: getFeed
+      responses:
+        '200':
+          description: User's feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostWithUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Follower endpoints
+  /followers:
+    get:
+      tags:
+        - Followers
+      summary: Get followers/following
+      description: Get followers or following relationships based on query parameters
+      operationId: getFollowers
+      parameters:
+        - name: owningUserId
+          in: query
+          required: false
+          description: Get users that this user is following
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+            example: "507f1f77bcf86cd799439011"
+        - name: followingId
+          in: query
+          required: false
+          description: Get users that are following this user
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+            example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: List of follower relationships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Following'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Followers
+      summary: Follow user
+      description: Follow another user
+      operationId: followUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - followingId
+              properties:
+                followingId:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: User followed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Following'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /followers/unfollow:
+    post:
+      tags:
+        - Followers
+      summary: Unfollow user
+      description: Unfollow a user
+      operationId: unfollowUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - followingId
+              properties:
+                followingId:
+                  type: string
+                  pattern: '^[0-9a-fA-F]{24}$'
+                  example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: User unfollowed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "removed 507f1f77bcf86cd799439011"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Comments endpoints
+  /comments:
+    get:
+      tags:
+        - Comments
+      summary: Get all comments
+      description: Retrieve all comments
+      operationId: getComments
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Comments
+      summary: Create comment
+      description: Create a new comment on a post
+      operationId: createComment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewComment'
+      responses:
+        '200':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session
+
+  schemas:
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        username:
+          type: string
+          example: johndoe
+
+    UserDetail:
+      allOf:
+        - $ref: '#/components/schemas/UserSummary'
+        - type: object
+          properties:
+            isMyself:
+              type: boolean
+              example: false
+            bio:
+              type: string
+              nullable: true
+              example: "Software engineer by day, bread enthusiast by night"
+            profilePictureUrl:
+              type: string
+              nullable: true
+              format: uri
+              example: "https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg"
+            bannerPictureUrl:
+              type: string
+              nullable: true
+              format: uri
+              example: "https://i.redd.it/6uibjk9cug041.jpg"
+            displayName:
+              type: string
+              nullable: true
+              example: "John Doe"
+
+    UpdateUser:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: newemail@example.com
+        bio:
+          type: string
+          example: "Updated bio text"
+        profilePictureUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://example.com/profile.jpg"
+        bannerPictureUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://example.com/banner.jpg"
+        displayName:
+          type: string
+          example: "Updated Display Name"
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        content:
+          type: string
+          example: "This is my first post!"
+        authorId:
+          type: string
+          nullable: true
+          example: "507f1f77bcf86cd799439012"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-15T10:30:00Z"
+        user:
+          type: object
+          nullable: true
+          properties:
+            username:
+              type: string
+              example: "johndoe"
+            displayName:
+              type: string
+              example: "John Doe"
+
+    PostWithUser:
+      allOf:
+        - $ref: '#/components/schemas/Post'
+        - type: object
+          required:
+            - user
+          properties:
+            user:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "johndoe"
+                displayName:
+                  type: string
+                  example: "John Doe"
+
+    NewPost:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+          example: "This is my new post!"
+
+    Following:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        followingId:
+          type: string
+          example: "507f1f77bcf86cd799439012"
+        owningUserId:
+          type: string
+          example: "507f1f77bcf86cd799439013"
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        content:
+          type: string
+          example: "Great post!"
+        authorId:
+          type: string
+          example: "507f1f77bcf86cd799439012"
+        postId:
+          type: string
+          example: "507f1f77bcf86cd799439013"
+
+    NewComment:
+      type: object
+      required:
+        - content
+        - authorId
+        - postId
+      properties:
+        content:
+          type: string
+          example: "Great post!"
+        authorId:
+          type: string
+          pattern: '^[0-9a-fA-F]{24}$'
+          example: "507f1f77bcf86cd799439012"
+        postId:
+          type: string
+          pattern: '^[0-9a-fA-F]{24}$'
+          example: "507f1f77bcf86cd799439013"
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "An error occurred"
+        details:
+          type: string
+          nullable: true
+          example: "Additional error details"
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+security:
+  - cookieAuth: []

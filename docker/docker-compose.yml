@@ -1,13 +1,62 @@
 version: "3.8"
 
 services:
+  auth-service:
+    build: ../apps/go-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+      - redis
+    environment:
+      - MONGO_URL=mongodb://fake:fake@database:27017
+      - REDIS_URL=redis:6379
+      - JWT_SECRET=your-super-secret-key-change-this-in-production-please
+    networks:
+      - smatter-network
+    restart: unless-stopped
+
+  app-service:
+    build: ../apps/node-backend
+    ports:
+      - "3001:3001"
+    depends_on:
+      - database
+      - auth-service
+    environment:
+      - MONGO_DB_CONNECTION_STRING=mongodb://fake:fake@database:27017/smatter
+      - AUTH_SERVICE_URL=http://auth-service:8080
+    networks:
+      - smatter-network
+    restart: unless-stopped
+
   database:
     build: db
     ports:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    networks:
+      - smatter-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - smatter-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
 
 volumes:
   mongo-data:
     driver: local
+  redis-data:
+    driver: local
+
+networks:
+  smatter-network:
+    driver: bridge
