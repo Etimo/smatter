@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "denied_patterns": [
+      ".env",
+      ".env.*",
+      "**/.env",
+      "**/.env.*",
+      ".env.local",
+      ".env.development",
+      ".env.production",
+      ".env.staging",
+      ".env.test"
+    ]
+  },
+  "description": "Security configuration to prevent Claude Code from accessing environment files that may contain sensitive information like API keys, database credentials, and other secrets.",
+  "rules": {
+    "environment_files": {
+      "patterns": [
+        ".env",
+        ".env.*",
+        "**/.env",
+        "**/.env.*"
+      ],
+      "actions": {
+        "read": "deny",
+        "write": "deny",
+        "edit": "deny",
+        "create": "deny",
+        "delete": "deny",
+        "list": "deny"
+      },
+      "reason": "Environment files contain sensitive data that should never be exposed or modified by AI assistants"
+    }
+  },
+  "security": {
+    "prevent_sensitive_file_access": true,
+    "environment_file_protection": true
+  }
+}
